@@ -1,26 +1,22 @@
 from selenium.webdriver.common.by import By
+from config.settings import *
 
+class URLs:
+    HOME  = BASE_URL
+    LOGIN = f"{BASE_URL}/account/login"
 
 class HomeElements:
-    MAIN_TITLE  = (By.TAG_NAME, "h1")
-    MENU_BUTTON = (By.XPATH, "//button[@class='menu']")
-
+    MAIN_TITLE  = (By.CSS_SELECTOR, '#__next > div.fig-6bprg0 > header > nav > a')
+    MAIN_LOGIN = (By.CSS_SELECTOR, '#__next > div.fig-6bprg0 > header > nav > div > div:nth-child(3)')
 
 class LoginElements:
-    ID_INPUT     = (By.ID, "username")
-    PW_INPUT     = (By.ID, "password")
-    LOGIN_BUTTON = (By.ID, "login-btn")
+    ID_INPUT  = (By.CSS_SELECTOR, 'input[name="username"]')
+    PW_INPUT  = (By.CSS_SELECTOR, 'input[name="password"]')
+    LOGIN_BTN = (By.CSS_SELECTOR, '#__next > div > section > div > form.fig-gx0lhm > button')
 
-
-
-class TestData:
-    LOGIN = {
-        "valid": {
-            "id": "test@example.com",
-            "pw": "password123",
-        },
-        "invalid": {
-            "id": "wrong@example.com",
-            "pw": "wrongpassword",
-        },
-    }
+class LoginData:
+    valid =  {
+        "id": "4qatest",
+        "pw": "qwer1234!",
+    },
+    

@@ -1,72 +1,84 @@
+
 import pytest
 from appium import webdriver
-from appium.options import AppiumOptions
-from config.capabilities import *
-from config.settings import *
-from utils.helpers import *
-
-# CLI 옵션
-
-CAPS_MAP = {
-    ("aos", "real",      "chrome"):  AOS_REAL_CHROME,
-    ("aos", "real",      "samsung"): AOS_REAL_SAMSUNG,
-    ("aos", "emulator",  "chrome"):  AOS_EMULATOR_CHROME,
-    ("ios", "real",      "safari"):  IOS_REAL_SAFARI,
-    ("ios", "real",      "chrome"):  IOS_REAL_CHROME,
-    ("ios", "simulator", "safari"):  IOS_SIMULATOR_SAFARI,
-    ("ios", "simulator", "chrome"):  IOS_SIMULATOR_CHROME,
-}
-
-# CLI 옵션 등록
-def pytest_addoption(parser):
-    parser.addoption(
-        "--platform", action="store", default="aos",
-        help="Target platform: aos | ios"
-    )
-    parser.addoption(
-        "--env", action="store", default="real",
-        help="Device environment: real | emulator | simulator"
-    )
-    parser.addoption(
-        "--browser", action="store", default="chrome",
-        help="Browser: chrome | samsung | safari"
-    )
-
-# session 범위 fixture : CLI 옵션 값 
-@pytest.fixture(scope="session")
-def platform(request):
-    return request.config.getoption("--platform").lower()
+from selenium.webdriver.common.options import ArgOptions
+from config.capabilities import CAPS_MAP
+from config.settings import TIMEOUT
+from utils.helpers import save_screenshot
 
 
-@pytest.fixture(scope="session")
-def env(request):
-    return request.config.getoption("--env").lower()
+# 마커 → Capabilities 선택 
+def _get_caps_from_markers(markers):
+    """
+    테스트 함수에 붙은 마커를 읽어 CAPS_MAP에서 해당 Capabilities 반환
+    마커 조합: (플랫폼, 환경, 브라우저)
+    """
+    platform = None
+    env      = None
+    browser  = None
 
-@pytest.fixture(scope="session")
-def browser(request):
-    return request.config.getoption("--browser").lower()
+    for marker in markers:
+        if marker.name in ("aos"):
+            platform = marker.name
+        if marker.name in ("emulator"):
+            env = marker.name
+        if marker.name in ("chrome"):
+            browser = marker.name
+        # if marker.name in ("aos", "ios"):
+        #     platform = marker.name
+        # if marker.name in ("real", "emulator", "simulator"):
+        #     env = marker.name
+        # if marker.name in ("chrome", "samsung", "safari"):
+        #     browser = marker.name
 
-# function 범위 fixture : Appium driver
-@pytest.fixture(scope="function")
-def driver(platform, env, browser):
     key = (platform, env, browser)
     caps = CAPS_MAP.get(key)
 
     if caps is None:
         raise ValueError(
-            f"지원하지 않는 조합입니다 → platform={platform}, env={env}, browser={browser}\n"
+            f"CAPS_MAP에 해당하는 Capabilities 없음 → {key}\n"
             f"지원 목록: {list(CAPS_MAP.keys())}"
         )
+    return caps
 
-    options = AppiumOptions().load_capabilities(caps)
-    _driver = webdriver.Remote(APPIUM_SERVER_URL, options=options)
+
+def _get_device_key_from_markers(markers):
+    """스크린샷 폴더 구분을 위한 기기 키 반환 (예: aos_emulator)"""
+    platform = None
+    env      = None
+
+    for marker in markers:
+        if marker.name in ("aos", "ios"):
+            platform = marker.name
+        if marker.name in ("real", "emulator", "simulator"):
+            env = marker.name
+
+    if platform and env:
+        return f"{platform}_{env}"
+    return "unknown"
+
+
+# driver fixture 
+@pytest.fixture(scope="function")
+def driver(request):
+    caps = _get_caps_from_markers(request.node.iter_markers()).copy()
+    server_url = caps.pop("appium:serverUrl")
+
+    options = ArgOptions()
+    options.capabilities.update(caps)
+
+    _driver = webdriver.Remote(server_url, options=options)
     _driver.implicitly_wait(TIMEOUT["implicit"])
+
+    # 기기 키를 driver에 임시 저장 (스크린샷 경로 분리용)
+    _driver._device_key = _get_device_key_from_markers(request.node.iter_markers())
 
     yield _driver
 
     _driver.quit()
 
-# 테스트 실패 시 스크린샷 저장
+
+# 실패 시 스크린샷 자동 저장
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
@@ -75,10 +87,14 @@ def pytest_runtest_makereport(item, call):
 
 
 @pytest.fixture(autouse=True)
-def capture_on_failure(request, driver):
+def capture_on_failure(request):
     yield
+    driver = request.node.funcargs.get("driver")  # driver 없는 테스트면 None 반환
+    if driver is None:
+        return
     rep = getattr(request.node, "rep_call", None)
     if rep and rep.failed:
         test_name = request.node.nodeid.replace("/", "_").replace("::", "__")
-        path = save_screenshot(driver, f"{test_name}.png")
-        print(f"\n❗️ 실패 스크린샷 저장: {path}")
+        device_key = getattr(driver, "_device_key", "unknown")
+        path = save_screenshot(driver, f"{test_name}.png", device_key)
+        print(f"\n📸 실패 스크린샷 저장: {path}")

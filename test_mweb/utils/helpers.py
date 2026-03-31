@@ -1,10 +1,27 @@
+# utils/helpers.py
+
 import os
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-# 플랫폼 판별 
+# 페이지 로드
+def wait_for_page_load(driver, timeout=30):
+    """페이지 로드 완료까지 대기 (document.readyState == complete)"""
+    WebDriverWait(driver, timeout).until(
+        lambda d: d.execute_script("return document.readyState") == "complete"
+    )
+
+
+def wait_for_url_change(driver, current_url, timeout=20):
+    """현재 URL에서 벗어날 때까지 대기"""
+    WebDriverWait(driver, timeout).until(
+        lambda d: d.current_url != current_url
+    )
+
+
+# 플랫폼 판별
 def get_platform(driver):
     """현재 driver의 플랫폼 반환 (android | ios)"""
     return driver.capabilities.get("platformName", "").lower()
@@ -18,7 +35,7 @@ def is_ios(driver):
     return get_platform(driver) == "ios"
 
 
-# 대기 
+# 대기
 def wait_for_element(driver, locator, timeout=20):
     """element 노출될 때까지 대기 후 반환"""
     return WebDriverWait(driver, timeout).until(
@@ -61,7 +78,7 @@ def scroll_to_element(driver, element):
     driver.execute_script("arguments[0].scrollIntoView(true);", element)
 
 
-# 탭/클릭 
+# 탭/클릭
 def tap_element(driver, element):
     """
     element 탭/클릭
@@ -77,7 +94,7 @@ def tap_element(driver, element):
         element.click()
 
 
-# 입력 
+# 입력
 def clear_and_input(driver, element, text):
     """
     입력창 초기화 후 텍스트 입력
@@ -92,7 +109,7 @@ def clear_and_input(driver, element, text):
         element.send_keys(text)
 
 
-# 키보드 
+# 키보드
 def hide_keyboard(driver):
     """
     키보드 숨기기
@@ -106,9 +123,14 @@ def hide_keyboard(driver):
 
 
 # 스크린샷
-def save_screenshot(driver, filename):
-    """스크린샷 저장 (screenshots/ 폴더)"""
-    os.makedirs("screenshots", exist_ok=True)
-    path = os.path.join("screenshots", filename)
+def save_screenshot(driver, filename, device_key="unknown"):
+    """
+    스크린샷 저장 (기기별 폴더 분리)
+    저장 경로: screenshots/{device_key}/{filename}
+    예시: screenshots/aos_emulator/test_login__fail.png
+    """
+    folder = os.path.join("screenshots", device_key)
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, filename)
     driver.save_screenshot(path)
     return path
