@@ -3,27 +3,22 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
+
 
 # 페이지 로드
 def wait_for_page_load(driver, timeout=30):
-    """페이지 로드 완료까지 대기 + 번역 팝업 자동 처리"""
+    """페이지 로드 완료까지 대기 (document.readyState == complete)"""
     WebDriverWait(driver, timeout).until(
         lambda d: d.execute_script("return document.readyState") == "complete"
     )
-    
-def wait_for_url_change(driver, current_url, timeout=30):
+
+
+def wait_for_url_change(driver, current_url, timeout=20):
     """현재 URL에서 벗어날 때까지 대기"""
     WebDriverWait(driver, timeout).until(
         lambda d: d.current_url != current_url
     )
 
-def wait_for_url_contains(driver, expected_url, timeout=30):
-    """특정 URL이 포함될 때까지 대기"""
-    WebDriverWait(driver, timeout).until(
-        lambda d: expected_url in d.current_url
-    )
 
 # 플랫폼 판별
 def get_platform(driver):
@@ -80,10 +75,6 @@ def scroll_up(driver, pixels=500):
 def scroll_to_element(driver, element):
     """특정 element 위치로 스크롤 (AOS/iOS 공통)"""
     driver.execute_script("arguments[0].scrollIntoView(true);", element)
-
-def scroll_to_center_element(driver, element):
-    """정중앙 위치로 스크롤 (AOS/iOS 공통)"""
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
 
 
 # 탭/클릭
@@ -161,6 +152,19 @@ def switch_to_webview(driver):
     except Exception:
         pass
 
+def close_browser(driver):
+    """
+    브라우저 종료
+    - iOS Safari: 네이티브 컨텍스트로 전환 후 앱 종료
+    - AOS: driver.quit()에서 자동 종료되므로 skip
+    """
+    if is_ios(driver):
+        try:
+            driver.execute_script("mobile: terminateApp", {"bundleId": "com.apple.mobilesafari"})
+        except Exception:
+            pass
+        
+
 # 시스템 팝업 처리
 def dismiss_save_password_popup(driver):
     """
@@ -184,7 +188,6 @@ def dismiss_save_password_popup(driver):
     finally:
         switch_to_webview(driver)
 
-# 플랫폼별 처리방법 분리
 def get_element_by_platform(driver, locator_aos, locator_ios):
     """
     플랫폼에 따라 다른 locator로 element 반환
@@ -193,17 +196,3 @@ def get_element_by_platform(driver, locator_aos, locator_ios):
     """
     locator = locator_aos if is_android(driver) else locator_ios
     return wait_for_element_clickable(driver, locator)
-
-
-def close_browser(driver):
-    """
-    브라우저 종료
-    - iOS Safari: 네이티브 컨텍스트로 전환 후 앱 종료
-    - AOS: driver.quit()에서 자동 종료되므로 skip
-    """
-    if is_ios(driver):
-        try:
-            driver.execute_script("mobile: terminateApp", {"bundleId": "com.apple.mobilesafari"})
-        except Exception:
-            pass
-        

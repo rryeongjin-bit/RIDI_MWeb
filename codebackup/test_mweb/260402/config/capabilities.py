@@ -11,11 +11,9 @@ def _build_caps(base: dict, udid: str) -> dict:
 CHROME_OPTIONS = {
     "goog:chromeOptions": {
         "args": [
-            "--disable-translate",           # 번역 비활성화
-            "--no-first-run",                # 첫 실행 안내 비활성화
-            "--disable-popup-blocking",      # 팝업 차단 비활성화
-            "--lang=ko",                     # 언어 한국어 고정
-            "--disable-features=TranslateUI",# 번역 UI 완전 비활성화
+            "--disable-translate",       # 번역 팝업 비활성화
+            "--no-first-run",            # 첫 실행 안내 비활성화
+            "--disable-popup-blocking",  # 팝업 차단 비활성화
         ]
     }
 }
