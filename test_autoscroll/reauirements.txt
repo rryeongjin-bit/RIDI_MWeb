@@ -1,0 +1,5 @@
+# numpy 설치
+# pip install opencv-python numpy
+
+# 프레임단위 분석진행 > ffmpeg 설치
+# brew install ffmpeg 

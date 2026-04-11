@@ -4,6 +4,8 @@ from appium.options.android import UiAutomator2Options
 from appium.options.ios import XCUITestOptions
 from appium.webdriver.common.appiumby import AppiumBy
 
+""" 특정시간동안 자동스크롤을 1.0배속으로 진행했을때의 평균 속도값측정 방법 2"""
+
 # 설정값 
 PLATFORM              = "android"  # "android" or "ios"
 IS_EMULATOR           = True
