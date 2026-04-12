@@ -1,0 +1,63 @@
+# order=1인 test_enter_to_login만 실행
+pytest -s -m "aos and emulator and chrome" -k "test_enter_to_login" tests/test_basic.py
+
+# order=2인 test_login_success만 실행
+pytest -s -m "aos and emulator and chrome" -k "test_login_success" tests/test_basic.py
+
+# 전체 실행 (order 순서대로)
+pytest -s -m "aos and emulator and chrome" tests/test_basic.py
+
+===
+# 병렬실행
+# AOS 에뮬레이터 + Chrome
+pytest -s -m "aos and emulator and chrome" tests/test_basic.py &
+
+# iOS 시뮬레이터 + Safari (동시 실행)
+pytest -s -m "ios and simulator and safari" tests/test_basic.py &
+=> `&`를 붙이면 백그라운드로 동시 실행됩니다.
+
+===
+# run_all.py 사용시 구별
+#   전체 기기 병렬 실행        : python run_all.py
+#   특정 기기만 선택 실행      : python run_all.py --targets aos_emulator ios_simulator
+#   특정 마커 케이스만 실행    : python run_all.py --marker smoke
+#   기기 + 마커 조합 실행      : python run_all.py --targets aos_emulator --marker smoke
+
+python run_all.py --targets aos_emulator ios_simulator 
+알아서 구별해서 각각 실행됨
+
+# test_login 함수만 실행
+python run_all.py --targets aos_emulator ios_simulator --keyword test_login
+
+# test_cart 함수만 실행
+python run_all.py --targets aos_emulator ios_simulator --keyword test_cart
+
+# smoke 마커 + test_login 함수만 실행
+python run_all.py --targets aos_emulator ios_simulator --marker smoke --keyword test_login
+
+===
+-m  →  마커로 기기/환경/브라우저 필터링
+-k  →  함수명으로 특정 케이스 단독 실행
+order →  전체 실행 시 순서 보장
+
+
+==
+# start_appium.sh 파일 사용법 >> vs code 터미널에서 바로 실행
+#!/bin/bash
+# start_appium.sh
+# Appium 서버 자동 실행 + 프록시 설정 자동화
+#
+# 사용법:
+#   전체 실행 (서버 + 프록시)  : bash start_appium.sh
+#   특정 포트만 실행           : bash start_appium.sh 4723
+#   프록시만 설정              : bash start_appium.sh proxy
+#   전체 종료 + 프록시 해제    : bash start_appium.sh stop
+# 전체 포트 실행 (4723, 4725, 4727, 4729)
+bash start_appium.sh
+
+# 특정 포트만 실행
+bash start_appium.sh 4723   # AOS 에뮬레이터만
+bash start_appium.sh 4727   # iOS 시뮬레이터만
+
+# 전체 종료
+bash start_appium.sh stop
