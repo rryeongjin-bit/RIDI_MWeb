@@ -1,0 +1,29 @@
+
+# 환경 변수 (보안)
+.env
+
+# 산출물
+reports/
+screenshots/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.python-version
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

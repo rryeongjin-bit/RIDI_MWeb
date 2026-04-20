@@ -1,0 +1,38 @@
+# 알림허용 팝업 
+# com.android.permissioncontroller:id/permission_message
+
+#허용 ; com.android.permissioncontroller:id/permission_allow_button
+#허용안함 : com.android.permissioncontroller:id/permission_deny_button
+
+
+마이버튼 : MY
+마이버튼 : MYnew UiSelector().description("MY")
+//android.view.ViewGroup[@content-desc="MY"]
+
+
+
+로그인버튼
+accessibily id : 로그인
+xpath : //android.view.ViewGroup[@content-desc="로그인"]
+
+로그인페이지 타이틀 : com.initialcoms.ridi:id/title_text
+로그인인풋박스 id : R2nmnm:
+xpath : //android.widget.EditText[@resource-id=":R2nmnm:"]
+
+pw인풋박스 id : R2nmnmH1:
+xpath : //android.widget.EditText[@resource-id=":R2nmnmH1:"]
+
+로그인버튼 : //android.widget.Button[@text="로그인"]
+
+
+기기대체 타이틀 : com.initialcoms.ridi:id/title
+첫번쨰 토글 : com.initialcoms.ridi:id/selection_radio_button
+new UiSelector().resourceId("com.initialcoms.ridi:id/selection_radio_button").instance(0)
+(//android.widget.RadioButton[@resource-id="com.initialcoms.ridi:id/selection_radio_button"])[1]
+
+대체하기 버튼 : com.initialcoms.ridi:id/replace_button
+로그아웃 버튼 : new UiSelector().text("로그아웃")
+//android.widget.TextView[@resource-id="button-label" and @text="로그아웃"]
+
+my : new UiSelector().text("MY").instance(0)
+(//android.widget.TextView[@text="MY"])[1]

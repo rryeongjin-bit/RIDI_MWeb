@@ -23,3 +23,6 @@ python run_all.py --platform aos --module tests/test_basic.py --marker smoke
 
 # pytest 직접 실행 (단독)
 pytest tests/test_basic.py -s --platform=aos --port=4723 --udid=YOUR_UDID
+
+
+python run_all.py --module tests/test_basic.py --marker "aos and emulator"
